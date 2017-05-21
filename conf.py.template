@@ -1,0 +1,46 @@
+reddit = {
+	# account credentials to use
+	'username': '',
+	'password':'',
+	
+	# app client credentials (register as 'script')
+	'client_id':'',
+	'client_secret':'',
+	
+	# which subreddits to listen to. Concatenate using + signs, eg. 'Aww+Science'
+	'subreddits':''
+}
+
+imap = {
+	# hostname of our imap server
+	'server': '',
+	
+	# auth credentials for imap
+	'username': '',
+	'password': '',
+	
+	# set to true if your imap connection is SSL
+	'ssl': True
+}
+
+mail = {
+	# send emails every this number of seconds...
+	'interval' : 3600,
+	
+	# or whenever this many items are pending, whichever comes first
+	'maxcount' : 50,
+	
+	# sending email address. replies to this address must be delivere
+	# to the imap account specified above
+	'sender': '',
+	
+	# who to send digests to
+	'recipient': '',
+	
+	# SMTP server that can send mail for us
+	'smtphost' : '',
+	
+	# auth credentials for the SMTP server
+	'username' : '',
+	'password' : ''
+}
