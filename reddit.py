@@ -31,7 +31,7 @@ def getReddit():
 	                     client_id=conf.reddit['client_id'], client_secret=conf.reddit['client_secret'],
 	                     username=conf.reddit['username'], password=conf.reddit['password'])
 		
-def sendResponse(realfullname, comment):
+def sendResponse(fullname, comment):
 	"""Send a response to Reddit.
 	
 	Comments are stripped of leading and trailing whitespace, and only submitted
@@ -47,9 +47,7 @@ def sendResponse(realfullname, comment):
 		return
 	
 	reddit = getReddit()
-	
-	fullname = "t1_dhqhvqb"
-	
+		
 	item = next(reddit.info([fullname]))
 	
 	print("[reddit] sending reply to %s: %s" % (repr(item),comment))
