@@ -21,11 +21,16 @@ Submissions and comments on Reddit are collected and sent as digest email to the
 
 ## Installation
 
-Prepare an email account to be used as the 'maildrop'. Hermod has been tested with dovecot IMAP servers; in theory any other IMAP server should work.
+Prepare an email account to be used as the 'maildrop'. Create a new reddit account, or use your own depending on your needs. [Create a new 'script' app](https://github.com/reddit/reddit/wiki/OAuth2-Quick-Start-Example) and note the client ID an client secret that are shown afterwards; you'll need to enter those and your reddit username & password in the configuration (copy `conf.py.template` to `conf.py` and edit accordingly).
 
-You'll want to configure `conf.py` (see `conf.py.template` for details). Then, to run:
+Hermod has been tested with dovecot IMAP servers; in theory any other IMAP server should work.
 
+Then, to install prerequisites and run:
+
+	# install dependencies
     pip3 install imapclient praw
+    
+    # run
     python3 ./hermod.py
 
 
