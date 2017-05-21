@@ -14,15 +14,8 @@ if os.path.exists(".hermod_ts"):
 else:
 	lastrun = 0
 
-now = time.time()
-print("it is now " + time.ctime(now))
-if lastrun == 0:
-	print("first run ever, this will take a while")
-else:
-	print("last run %d seconds ago" % (now - lastrun))
-	
+now = time.time()	
 
-print('.. connecting to Reddit')
 def getReddit():
 	return praw.Reddit(user_agent='hermod (by /u/icestep)',
 	                     client_id=conf.reddit['client_id'], client_secret=conf.reddit['client_secret'],
@@ -30,33 +23,33 @@ def getReddit():
 
 def watchSubmissions(mailQueue):
 	reddit = getReddit()
-	print("watching submissions...")
+	print("[reddit-sub] watching submissions...")
 	subreddit = reddit.subreddit(conf.reddit['subreddits'])
 	for submission in subreddit.stream.submissions():
 		if submission.created_utc < lastrun:
 			# we've seen this already, let it slide
 			continue
-		print("-- new submission --")
-		print(vars(submission))
+		print("[reddit-sub] -- new submission --")
 		body = ""
 		body = body + "[--%s--] User %s made a new submission to %s titled '%s'\n" % (submission.fullname, submission.author.name, submission.subreddit.display_name, submission.title)
 		body = body + "\n\n"
 		
 		mailQueue.put(body)
 		
-def sendResponse(fullname, comment):
+def sendResponse(realfullname, comment):
 	reddit = getReddit()
+	
+	fullname = "t1_dhqhvqb"
 	
 	item = next(reddit.info([fullname]))
 	
-	print("reply to %s: %s" % (repr(item),comment))
+	print("[reddit] sending reply to %s: %s" % (repr(item),comment))
 	while True:
 		try:
-			return
-			# item.reply(comment)
+			item.reply(comment)
 		except praw.exceptions.APIException as err:
-			print("Exception: %s" % err.message)
-			print("Sleeping 10 minutes")
+			print("[reddit] Exception: %s" % err.message)
+			print("[reddit] Sleeping 10 minutes")
 			sleep(600)
 		else:
 			return
@@ -64,15 +57,15 @@ def sendResponse(fullname, comment):
 		
 def watchComments(mailQueue):
 	reddit = getReddit()
-	print("watching comments...")
+	print("[reddit-com] watching comments...")
 	subreddit = reddit.subreddit(conf.reddit['subreddits'])
 
 	for comment in subreddit.stream.comments():
 		if comment.created_utc < lastrun:
 			continue
 		else:
-			print('=== new comment ===')
-		print(time.ctime(comment.created_utc))
+			print('[reddit-com] === new comment ===')
+		print('[reddit-com]',time.ctime(comment.created_utc))
 #			print(vars(comment))
 		parent = next(reddit.info([comment.parent_id]))
 		par = (parent.title+"\n"+parent.selftext) if isinstance(parent, praw.models.reddit.submission.Submission) else parent.body
@@ -96,12 +89,12 @@ def Mailer(mailQueue):
 			timeout = max(0, conf.mail['interval'] - time.time() + lastSent)
 			if itemCount >= conf.mail['maxcount']:
 				timeout = 0
-			print("waiting at most %d more seconds for messages..." % timeout)
+			print("[outmailer] waiting at most %d more seconds for messages..." % timeout)
 			body = body + mailQueue.get(True if timeout > 0 else False, timeout)
 			itemCount = itemCount + 1
 		except queue.Empty:
 			if itemCount > 0:
-				print("sending mail...")
+				print("[outmailer] sending mail...")
 				with SMTP_SSL(conf.mail['smtphost']) as smtp:
 					smtp.login(conf.mail['username'], conf.mail['password'])
 					msg = MIMEText(body)

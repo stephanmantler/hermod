@@ -13,13 +13,13 @@ def sendResponse(id, response):
 	if len(stripped) == 0:
 		# avoid empty
 		return
-	print("++ sending response to %s:\n%s\n" % (id,response))
+	print("[imap] ++ sending response to %s:\n%s\n" % (id,response))
 	reddit.sendResponse(id, response)
 
 
 def imapWatcher():
 
-	print('polling imap for new comments...')
+	print('[imap] polling imap for new comments...')
 	
 	while True:
 	
@@ -40,32 +40,30 @@ def imapWatcher():
 		
 		#messages = server.search(['NOT', 'DELETED'])
 		messages = server.search(['NOT','DELETED'])
-		print("%d messages that aren't deleted" % len(messages))
+		print("[imap] %d messages that aren't deleted" % len(messages))
 		
-		print()
-		print("Messages:")
 		response = server.fetch(messages, ['ENVELOPE','RFC822','FLAGS', 'RFC822.SIZE'])
 		for msgid, data in response.items():
 			envelope = data[b'ENVELOPE']	
 			raw_mail = data[b'RFC822']
 			
-			print("%s (%s)" % (msgid, envelope.to[0].mailbox))
+			print("[imap] %s (%s)" % (msgid, envelope.to[0].mailbox))
 			
 			if envelope.to[0].mailbox == b'hermod-reg':
 				# we're not doing this at the moment.
 				continue
 			else:
-				print('- processing comment submission -')
+				print('[imap] - processing comment submission -')
 				msg = email.message_from_bytes(raw_mail)
 				
 				body =""
 				# look for text
 				if msg.is_multipart():
-					print("trouble: can't yet handle multipart message")
-					print(repr(msg))
+					print("[imap] trouble: can't yet handle multipart message")
+					print("[imap]",repr(msg))
 					continue
 				else:
-					body = str(msg.get_payload(decode=False))
+					body = msg.get_payload(decode=True).decode(msg.get_content_charset(), 'ignore')
 					
 				# normalize CRLF
 				body = re.sub("\r\n","\n",body)
@@ -77,14 +75,18 @@ def imapWatcher():
 				active = None
 				response = ""
 				for line in lines:
-					print("=>",active, line)
+					print("[imap] =>",active, line)
 					idmatch = re.search("\[\-\-(\w+_\w+)\-\-\]", line)
+					
 					if idmatch is not None:
 						# send out previous response, if any
 						if active is not None:
 							sendResponse(active, response)
 						active = idmatch.group(1)
 						response = ""
+					elif line.strip() == "!mute":
+						# mute this entire conversation
+						print("[imap] muting conversation %s" % idmatch)
 					elif not line.startswith(">"):
 						response = response + line.strip() + "\n"
 					
@@ -93,9 +95,10 @@ def imapWatcher():
 				if active is not None:
 					sendResponse(active, response)
 					
-				print("done, deleting message %s" % msgid)
+				print("[imap] done, deleting message %s" % msgid)
 				server.set_flags(msgid, (imapclient.DELETED))
 					
 		server.logout()
-		e = threading.Event()
-		e.wait(timeout = conf.mail['interval'])
+		# sleep for a while before checking again
+		print("[imap] sleeping for 120 seconds")
+		time.sleep(120)
