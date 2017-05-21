@@ -1,5 +1,5 @@
 # hermod
-[messenger of gods](https://en.wikipedia.org/wiki/Hermóðr). A [Reddit](https://www.reddit.com) &lt;-> email gateway
+[messenger of gods](https://en.wikipedia.org/wiki/Hermóðr). A Reddit &lt;-> email gateway
 
 
 ## Synopsis
@@ -21,17 +21,23 @@ Submissions and comments on Reddit are collected and sent as digest email to the
 
 ## Installation
 
+Prepare an email account to be used as the 'maildrop'. Hermod has been tested with dovecot IMAP servers; in theory any other IMAP server should work.
+
 You'll want to configure `conf.py` (see `conf.py.template` for details). Then, to run:
 
-   pip3 install imapclient praw
-   python3 ./hermod.py
+    pip3 install imapclient praw
+    python3 ./hermod.py
 
 
 ## Usage
 
 Configure and install prerequisites. Fire it up. Wait for digest messages to arrive in your mailbox. To reply,
-add your responses inline keeping the annotations in brackets intact (quoting and/or deleting other text is fine). For example, the reply mail could be:
+add your responses inline keeping the annotations in brackets intact (quoting and/or deleting other text is fine). The subject is irrelevant. For example, the reply mail could be:
 
+    Subject: Re: Activity on Reddit - 5 items
+    From: user@example.com
+    To hermod@example.com
+    
     > [--t1_ahbvcjd--] User dummy commented on a submission in Aww. The title of the submission
     > was 'My new kitten'
     >
@@ -46,7 +52,7 @@ add your responses inline keeping the annotations in brackets intact (quoting an
     
     No, I did.
     
-Once this message arrives in the email account associated with hermod, the next refresh cycle will pick it up  and post `I love it when they do that!` as a response to `\u\dummy`'s comment. It will also post a snarky reply to the response of `\u\fnord`.
+Once this message has been delivered, the next refresh cycle will pick it up and hermod will post `I love it when they do that!` as a response to `\u\dummy`'s comment. It will also post a snarky reply to the response of `\u\fnord`.
 
 
 ## License
