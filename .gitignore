@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# configuration is secret (see conf.py.template)
+conf.py
+
 # C extensions
 *.so
 
