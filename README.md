@@ -64,6 +64,17 @@ add your responses inline keeping the annotations in brackets intact (quoting an
 Once this message has been delivered, the next refresh cycle will pick it up and hermod will post `I love it when they do that!` as a response to `\u\dummy`'s comment. It will also post a snarky reply to the response of `\u\fnord`.
 
 
+## Caveats
+
+Comments are posted as the user specified in the config, regardless who sent them. No authentication is
+performed to ensure the email is coming from a reliable and authentic source. In other words, if somebody
+figures out the email address they could possibly fabricate messages that get posted in your name. 
+
+Large volumes of traffic may produce a daunting amount of email.
+
+No state is saved; crashes or network issues may lead to double deliveries of digest messages, and possibly double postings to Reddit.
+
+
 ## License
 
 MIT License (see `LICENSE` for details)
