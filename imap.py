@@ -1,3 +1,7 @@
+""" Handling email submissions via IMAP inbox.
+"""
+
+
 import time
 import threading
 import imapclient
@@ -5,19 +9,14 @@ import email
 import ssl
 import re
 import conf
-import reddit
-
-def sendResponse(id, response):
-	# remove any newlines
-	stripped = response.strip()
-	if len(stripped) == 0:
-		# avoid empty
-		return
-	print("[imap] ++ sending response to %s:\n%s\n" % (id,response))
-	reddit.sendResponse(id, response)
-
+import reddit	
 
 def imapWatcher():
+	"""Watch our IMAP inbox. Periodically open mailbox, look for new messages, 
+	parse content for submissions to send to Reddit, delete message.
+	
+	This function does not normally return.
+	"""
 
 	print('[imap] polling imap for new comments...')
 	
@@ -81,19 +80,19 @@ def imapWatcher():
 					if idmatch is not None:
 						# send out previous response, if any
 						if active is not None:
-							sendResponse(active, response)
+							reddit.sendResponse(active, response)
 						active = idmatch.group(1)
 						response = ""
 					elif line.strip() == "!mute":
-						# mute this entire conversation
-						print("[imap] muting conversation %s" % idmatch)
+						# TODO: find a way to mute this entire conversation
+						print("[imap] muting conversation %s (i wish)" % idmatch)
 					elif not line.startswith(">"):
 						response = response + line.strip() + "\n"
 					
 
 				# send out last response we've been collecting
 				if active is not None:
-					sendResponse(active, response)
+					reddit.sendResponse(active, response)
 					
 				print("[imap] done, deleting message %s" % msgid)
 				server.set_flags(msgid, (imapclient.DELETED))
