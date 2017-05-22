@@ -14,20 +14,20 @@ from email.mime.text import MIMEText
 
 import conf
 import reddit	
+import util
 
-def sendAuthMail(recipient, authUrl):
+def sendAuthMail(to, authUrl):
 
 	body = "Please follow the following link to connect your reddit account:\n%s" % authUrl
 	msg = MIMEText(body)
 	
-	to ="%s@%s" % (recipient.mailbox.decode('utf-8'), recipient.host.decode('utf-8'))
 
 	with SMTP_SSL(conf.mail['smtphost']) as smtp:
 		smtp.login(conf.mail['username'], conf.mail['password'])
 		msg = MIMEText(body)
 		msg['Subject'] = "Authorizing Reddit"
 		msg['From'] = conf.mail['sender']
-		print('[imap]','sending to',repr(recipient))
+		print('[imap]','sending to',to)
 		msg['To'] = to
 		
 		smtp.sendmail(conf.mail['sender'], to, msg.as_string())
@@ -74,21 +74,47 @@ def imapWatcher():
 			if envelope.to[0].mailbox == b'hermod-reg':
 				# we're not doing this at the moment.
 				r = reddit.getReddit()
-				authUrl = r.auth.url(["identity","read","submit","edit","privatemessages"],str(envelope.sender[0]),'permanent',False)
+				recipient = envelope.sender[0]
+				to ="%s@%s" % (recipient.mailbox.decode('utf-8'), recipient.host.decode('utf-8'))
+
+				authUrl = r.auth.url(["identity","read","submit","edit","privatemessages"], \
+									to,'permanent',False)
 				print("[imap] auth url: %s" % authUrl)
-				sendAuthMail(envelope.sender[0], authUrl)
+				sendAuthMail(to, authUrl)
 				server.set_flags(msgid, (imapclient.DELETED))
 				continue
 			else:
 				print('[imap] - processing comment submission -')
 				msg = email.message_from_bytes(raw_mail)
 				
+				# figure out who sent it
+				sender = envelope.sender[0]
+				to ="%s@%s" % (sender.mailbox.decode('utf-8'), sender.host.decode('utf-8'))
+				
+				# .. and find the right token
+				tokens = util.readTokens()
+				token = None
+				for (t, a) in tokens:
+					if a == to:
+						token = t
+						break
+						
+				if token is None:
+					print('[imap] ERR: could not look up access token for %s' % to)
+					print('[imap] submissions will not be delivered.')
+				else:
+					print('[imap] using token %s' % token)
+				
 				body =""
 				# look for text
 				if msg.is_multipart():
 					print("[imap] trouble: can't yet handle multipart message")
-					print("[imap]",repr(msg))
-					continue
+					for part in msg.walk():
+						print("[imap]", part.get_content_type())
+						if part.get_content_type() == "text/plain":
+							body = part.get_payload(decode=True).decode(part.get_content_charset(), 'ignore')
+							print("[imap] located text/plain part")
+						continue
 				else:
 					body = msg.get_payload(decode=True).decode(msg.get_content_charset(), 'ignore')
 					
@@ -120,7 +146,7 @@ def imapWatcher():
 
 				# send out last response we've been collecting
 				if active is not None:
-					reddit.sendResponse(active, response)
+					reddit.sendResponse(token, active, response)
 					
 				print("[imap] done, deleting message %s" % msgid)
 				server.set_flags(msgid, (imapclient.DELETED))
