@@ -42,7 +42,7 @@ def getReddit(token = None):
 	return reddit
 
 		
-def sendResponse(fullname, comment):
+def sendResponse(token, fullname, comment):
 	"""Send a response to Reddit.
 	
 	Comments are stripped of leading and trailing whitespace, and only submitted
@@ -56,8 +56,12 @@ def sendResponse(fullname, comment):
 	if len(comment) == 0:
 		# avoid empty
 		return
+		
+	if token is None:
+		# nothing to be done without token
+		return
 	
-	reddit = getReddit()
+	reddit = getReddit(token)
 		
 	item = next(reddit.info([fullname]))
 	
