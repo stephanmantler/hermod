@@ -25,14 +25,16 @@ Submissions and comments on Reddit are collected and sent as digest email to the
 
 ## Installation
 
-Prepare an email account to be used as the 'maildrop'. Create a new reddit account, or use your own depending on your needs. [Create a new 'script' app](https://github.com/reddit/reddit/wiki/OAuth2-Quick-Start-Example) and note the client ID an client secret that are shown afterwards; you'll need to enter those and your reddit username & password in the configuration (copy `conf.py.template` to `conf.py` and edit accordingly).
+Prepare an email account to be used as the 'maildrop'. You'll also need an alias that is used for the Reddit auth process; currently this is hardcoded as `hermod-reg@...` and should be forwarded to the same mailbox.
+
+Create a new reddit account, or use your own depending on your needs. [Create a new 'web' app](https://github.com/reddit/reddit/wiki/OAuth2-Quick-Start-Example) and note the client ID an client secret that are shown afterwards; you'll need to enter those in the configuration (copy `conf.py.template` to `conf.py` and edit accordingly). Also enter the correct redirect uri (name of the server that hermod is running on; port is currently hardcoded to 1088).
 
 Hermod has been tested with dovecot IMAP servers; in theory any other IMAP server should work.
 
 Then, to install prerequisites and run:
 
 	# install dependencies
-    pip3 install imapclient praw
+    pip3 install imapclient praw Flask setproctitle
     
     # run
     python3 ./hermod.py
@@ -40,8 +42,17 @@ Then, to install prerequisites and run:
 
 ## Usage
 
-Configure and install prerequisites. Fire it up. Wait for digest messages to arrive in your mailbox. To reply,
-add your responses inline keeping the annotations in brackets intact (quoting and/or deleting other text is fine). The subject is irrelevant. For example, the reply mail could be:
+### Connecting with Reddit
+Fire it up. 
+
+Send an empty email to `hermod-reg@...` (subject and content do not matter). Wait for a reply to be delivered to you. It should contain a link to reddit. Open this link and agree to authenticate. Wait for the redirection to complete (this may take a moment); then you can close the window.
+
+From then on, hermod should start to collect digest messages for you.
+
+### Reading and responding to digests
+Wait for digest messages to arrive in your mailbox. 
+
+To reply, add your responses inline keeping the annotations in brackets intact (quoting and/or deleting other text is fine). The subject is irrelevant. For example, the reply mail could be:
 
     Subject: Re: Activity on Reddit - 5 items
     From: user@example.com
