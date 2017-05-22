@@ -8,15 +8,43 @@ import time
 import os
 import textwrap
 from multiprocessing import Process, Queue
-import conf, util, reddit, imap
+from setproctitle import setproctitle
 
-mailQueue = Queue()
-				
-subThread = Process(name="submissions watcher", target=reddit.watchSubmissions, args=(mailQueue,))
-comThread = Process(name="comments watcher", target=reddit.watchComments, args=(mailQueue,))
-mailThread = Process(name="mailer",target=reddit.Mailer,args=(mailQueue,))
-subThread.start()
-comThread.start()
-mailThread.start()
+import conf
+import util
+import reddit
+import imap
+import httpserver
 
+
+def launchThreads(token):
+	mailQueue = Queue()
+
+	subThread = Process(name="submissions watcher", \
+						target=reddit.watchSubmissions, \
+						args=(mailQueue,token))
+	comThread = Process(name="comments watcher", \
+						target=reddit.watchComments, \
+						args=(mailQueue,token))
+	mailThread = Process(name="mailer", \
+						target=reddit.Mailer, \
+						args=(mailQueue,token))
+	subThread.start()
+	comThread.start()
+	mailThread.start()
+
+httpThread = Process(name="http server", target=httpserver.runHttpServer, args=())
+httpThread.start()
+
+# fire up existing tokens
+print("[main] reading stored tokens")
+authTokenList = util.readTokens()
+print("[main] %s" % repr(authTokenList))
+for token in authTokenList:
+	print("[main] launching system for %s" % token[1])
+	launchThreads(token)
+
+# imap runs on the main loop
+setproctitle("hermod (main loop)")
+print("[main] launching imap watcher")
 imap.imapWatcher()

@@ -1,11 +1,10 @@
 reddit = {
-	# account credentials to use
-	'username': '',
-	'password':'',
-	
-	# app client credentials (register as 'script')
+	# app client credentials (register as 'web app')
 	'client_id':'',
 	'client_secret':'',
+	
+	# the redirect url (required for oauth2 flow)
+	'redirect_url':'',
 	
 	# which subreddits to listen to. Concatenate using + signs, eg. 'Aww+Science'
 	'subreddits':''

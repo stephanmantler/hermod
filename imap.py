@@ -8,8 +8,31 @@ import imapclient
 import email
 import ssl
 import re
+
+from smtplib import SMTP_SSL
+from email.mime.text import MIMEText
+
 import conf
 import reddit	
+
+def sendAuthMail(recipient, authUrl):
+
+	body = "Please follow the following link to connect your reddit account:\n%s" % authUrl
+	msg = MIMEText(body)
+	
+	to ="%s@%s" % (recipient.mailbox.decode('utf-8'), recipient.host.decode('utf-8'))
+
+	with SMTP_SSL(conf.mail['smtphost']) as smtp:
+		smtp.login(conf.mail['username'], conf.mail['password'])
+		msg = MIMEText(body)
+		msg['Subject'] = "Authorizing Reddit"
+		msg['From'] = conf.mail['sender']
+		print('[imap]','sending to',repr(recipient))
+		msg['To'] = to
+		
+		smtp.sendmail(conf.mail['sender'], to, msg.as_string())
+
+
 
 def imapWatcher():
 	"""Watch our IMAP inbox. Periodically open mailbox, look for new messages, 
@@ -50,6 +73,11 @@ def imapWatcher():
 			
 			if envelope.to[0].mailbox == b'hermod-reg':
 				# we're not doing this at the moment.
+				r = reddit.getReddit()
+				authUrl = r.auth.url(["identity","read","submit","edit","privatemessages"],str(envelope.sender[0]),'permanent',False)
+				print("[imap] auth url: %s" % authUrl)
+				sendAuthMail(envelope.sender[0], authUrl)
+				server.set_flags(msgid, (imapclient.DELETED))
 				continue
 			else:
 				print('[imap] - processing comment submission -')

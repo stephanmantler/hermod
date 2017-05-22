@@ -7,6 +7,7 @@ import os
 import textwrap
 import praw
 import queue
+from setproctitle import setproctitle
 
 from smtplib import SMTP_SSL
 from email.mime.text import MIMEText
@@ -23,13 +24,23 @@ else:
 
 now = time.time()	
 
-def getReddit():
+def getReddit(token = None):
 	"""Convenience function to create a Reddit instance for each process
 	"""
 	
-	return praw.Reddit(user_agent='hermod (by /u/icestep)',
-	                     client_id=conf.reddit['client_id'], client_secret=conf.reddit['client_secret'],
-	                     username=conf.reddit['username'], password=conf.reddit['password'])
+	if token is not None:
+		reddit = praw.Reddit(user_agent='hermod (by /u/icestep)', \
+							client_id=conf.reddit['client_id'], \
+							client_secret=conf.reddit['client_secret'], \
+							refresh_token=token)
+	else:
+		reddit = praw.Reddit(user_agent='hermod (by /u/icestep)', \
+							client_id=conf.reddit['client_id'], \
+							client_secret=conf.reddit['client_secret'], \
+							redirect_uri=conf.reddit['redirect_uri'])
+								
+	return reddit
+
 		
 def sendResponse(fullname, comment):
 	"""Send a response to Reddit.
@@ -62,13 +73,14 @@ def sendResponse(fullname, comment):
 			return
 			
 
-def watchSubmissions(mailQueue):
+def watchSubmissions(mailQueue, context):
 	"""Watch incoming submissions, and enqueue them to the mail digest.
 	
 	This function is designed to run as its own process, and does not normally return.
 	"""
 	
-	reddit = getReddit()
+	setproctitle("hermod (submissions for %s)" % context[1])
+	reddit = getReddit(context[0])
 	print("[reddit-sub] watching submissions...")
 	subreddit = reddit.subreddit(conf.reddit['subreddits'])
 	for submission in subreddit.stream.submissions():
@@ -83,13 +95,14 @@ def watchSubmissions(mailQueue):
 		mailQueue.put(body)
 			
 		
-def watchComments(mailQueue):
+def watchComments(mailQueue, context):
 	"""Watch incoming comments (also nested) on existing submissions, and enqueue them to the mail digest.
 	
 	This function is designed to run as its own process, and does not normally return.
 	"""
 	
-	reddit = getReddit()
+	setproctitle("hermod (comments for %s)" % context[1])
+	reddit = getReddit(context[0])
 	print("[reddit-com] watching comments...")
 	subreddit = reddit.subreddit(conf.reddit['subreddits'])
 
@@ -112,13 +125,14 @@ def watchComments(mailQueue):
 		
 		mailQueue.put(body)
 
-def Mailer(mailQueue):
+def Mailer(mailQueue, context):
 	"""Collect items from the queue supplied by watchSumissions and watchComments, assemble
 	them into digest form and send out via email.
 	
 	This function is designed to run as its own process, and does not normally return.
 	"""
 	
+	setproctitle("hermod (outgoing mailer for %s)" % context[1])
 	body = ""
 	itemCount = 0
 	lastSent = time.time()
@@ -139,9 +153,9 @@ def Mailer(mailQueue):
 					msg = MIMEText(body)
 					msg['Subject'] = "Activity on Reddit - %d items" % itemCount
 					msg['From'] = conf.mail['sender']
-					msg['To'] = conf.mail['recipient']
+					msg['To'] = context[1]
 					
-					smtp.sendmail(conf.mail['sender'], conf.mail['recipient'], msg.as_string())
+					smtp.sendmail(conf.mail['sender'], context[1], msg.as_string())
 				
 			body = ""
 			itemCount = 0
