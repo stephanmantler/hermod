@@ -1,22 +1,43 @@
 import os
 import shelve
-from multiprocessing import Lock
+from multiprocessing import Process,Queue,Lock
+
+import reddit
+
+
+def launchThreads(token):
+	mailQueue = Queue()
+
+	subThread = Process(name="submissions watcher", \
+						target=reddit.watchSubmissions, \
+						args=(mailQueue,token))
+	comThread = Process(name="comments watcher", \
+						target=reddit.watchComments, \
+						args=(mailQueue,token))
+	mailThread = Process(name="mailer", \
+						target=reddit.Mailer, \
+						args=(mailQueue,token))
+	subThread.start()
+	comThread.start()
+	mailThread.start()
 
 
 shelfLock = Lock()
 
-authTokenList = []
-
 def saveToken(token, address):
 	shelfLock.acquire()
-	authTokenList.append( (token, address) )
+	authTokenList = []
 	with shelve.open('.hermod.tokens') as db:
+		if 'tokens' in db:
+			authTokenList = db['tokens']
+		authTokenList.append( (token, address) )
 		db['tokens']= authTokenList
 	shelfLock.release()
 	
 	
 def readTokens():
 	shelfLock.acquire()
+	authTokenList = []
 	with shelve.open('.hermod.tokens') as db:
 		if 'tokens' in db:
 			authTokenList = db['tokens']

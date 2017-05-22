@@ -24,6 +24,8 @@ def authorized():
     refresh_token = r.auth.authorize(code)
     
     util.saveToken(refresh_token,state)
+    util.launchThreads((refresh_token,state))
+
     
     user = r.user.me()
     variables_text = "State=%s, code=%s, info=%s." % (state, code,

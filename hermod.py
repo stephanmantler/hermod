@@ -7,31 +7,13 @@ IMAP watcher in an infinite loop.
 import time
 import os
 import textwrap
-from multiprocessing import Process, Queue
 from setproctitle import setproctitle
+from multiprocessing import Process
 
-import conf
 import util
-import reddit
 import imap
 import httpserver
 
-
-def launchThreads(token):
-	mailQueue = Queue()
-
-	subThread = Process(name="submissions watcher", \
-						target=reddit.watchSubmissions, \
-						args=(mailQueue,token))
-	comThread = Process(name="comments watcher", \
-						target=reddit.watchComments, \
-						args=(mailQueue,token))
-	mailThread = Process(name="mailer", \
-						target=reddit.Mailer, \
-						args=(mailQueue,token))
-	subThread.start()
-	comThread.start()
-	mailThread.start()
 
 httpThread = Process(name="http server", target=httpserver.runHttpServer, args=())
 httpThread.start()
@@ -42,7 +24,7 @@ authTokenList = util.readTokens()
 print("[main] %s" % repr(authTokenList))
 for token in authTokenList:
 	print("[main] launching system for %s" % token[1])
-	launchThreads(token)
+	util.launchThreads(token)
 
 # imap runs on the main loop
 setproctitle("hermod (main loop)")
