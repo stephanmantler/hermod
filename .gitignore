@@ -5,6 +5,8 @@ __pycache__/
 
 # configuration is secret (see conf.py.template)
 conf.py
+# tokens are secret
+.hermod.tokens
 
 # C extensions
 *.so
