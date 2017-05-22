@@ -49,6 +49,7 @@ def sendResponse(token, fullname, comment):
 	if they are non-empty.
 	
 	Positional Arguments:
+	token -- the access token we need to authenticate
 	fullname -- the 'full name' of the reddit object to submit the comment to
 	comment -- the actual text to comment.
 	"""	
