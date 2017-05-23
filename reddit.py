@@ -95,6 +95,7 @@ def watchSubmissions(mailQueue, context):
 		print("[reddit-sub] -- new submission --")
 		body = ""
 		body = body + "[--%s--] User %s made a new submission to %s titled '%s'\n" % (submission.fullname, submission.author.name, submission.subreddit.display_name, submission.title)
+		body = body + submission.selftext
 		body = body + "\n\n"
 		
 		mailQueue.put(body)
