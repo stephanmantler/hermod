@@ -38,4 +38,4 @@ def authorized():
 def runHttpServer():
 	setproctitle("hermod (auth http server)")
 	
-	app.run(debug=False, port=1088)
+	app.run(host='0.0.0.0', debug=False, port=1088)
