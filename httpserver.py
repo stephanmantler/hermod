@@ -23,8 +23,8 @@ def authorized():
     code = request.args.get('code', '')
     refresh_token = r.auth.authorize(code)
     
-    util.saveToken(refresh_token,state)
-    util.launchThreads((refresh_token,state))
+    util.saveToken(refresh_token,state, {})
+    util.launchThreads((refresh_token,state, {}))
 
     
     user = r.user.me()

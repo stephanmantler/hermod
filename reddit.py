@@ -41,6 +41,11 @@ def getReddit(token = None):
 								
 	return reddit
 
+
+def getSubreddits(r):
+	srs = "+".join(x.display_name for x in r.user.subreddits() if x not in conf.reddit['muted'])
+	return srs
+
 		
 def sendResponse(token, fullname, comment):
 	"""Send a response to Reddit.
@@ -87,7 +92,7 @@ def watchSubmissions(mailQueue, context):
 	setproctitle("hermod (submissions for %s)" % context[1])
 	reddit = getReddit(context[0])
 	print("[reddit-sub] watching submissions...")
-	subreddit = reddit.subreddit(conf.reddit['subreddits'])
+	subreddit = reddit.subreddit(getSubreddits(reddit))# reddit.subreddit(conf.reddit['subreddits'])
 	for submission in subreddit.stream.submissions():
 		if submission.created_utc < lastrun:
 			# we've seen this already, let it slide
@@ -110,7 +115,7 @@ def watchComments(mailQueue, context):
 	setproctitle("hermod (comments for %s)" % context[1])
 	reddit = getReddit(context[0])
 	print("[reddit-com] watching comments...")
-	subreddit = reddit.subreddit(conf.reddit['subreddits'])
+	subreddit = reddit.subreddit(getSubreddits(reddit)) #reddit.subreddit(conf.reddit['subreddits'])
 
 	for comment in subreddit.stream.comments():
 		if comment.created_utc < lastrun:

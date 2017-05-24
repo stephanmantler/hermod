@@ -24,13 +24,13 @@ def launchThreads(token):
 
 shelfLock = Lock()
 
-def saveToken(token, address):
+def saveToken(token, address, options ):
 	shelfLock.acquire()
 	authTokenList = []
 	with shelve.open('.hermod.tokens') as db:
 		if 'tokens' in db:
 			authTokenList = db['tokens']
-		authTokenList.append( (token, address) )
+		authTokenList.append( (token, address, options ) )
 		db['tokens']= authTokenList
 	shelfLock.release()
 	

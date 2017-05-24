@@ -6,8 +6,8 @@ reddit = {
 	# the redirect url (required for oauth2 flow)
 	'redirect_url':'',
 	
-	# which subreddits to listen to. Concatenate using + signs, eg. 'Aww+Science'
-	'subreddits':''
+	# which subreddits to avoid listening to. Should be an array, eg.['Aww','art','news']
+	'muted': []
 }
 
 imap = {

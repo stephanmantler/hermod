@@ -18,7 +18,7 @@ import util
 
 def sendAuthMail(to, authUrl):
 
-	body = "Please follow the following link to connect your reddit account:\n%s" % authUrl
+	body = "Please follow the following link to connect your reddit account, and select 'Allow' on the following page.\n\n%s" % authUrl
 	msg = MIMEText(body)
 	
 
@@ -77,7 +77,7 @@ def imapWatcher():
 				recipient = envelope.sender[0]
 				to ="%s@%s" % (recipient.mailbox.decode('utf-8'), recipient.host.decode('utf-8'))
 
-				authUrl = r.auth.url(["identity","read","submit","edit","privatemessages"], \
+				authUrl = r.auth.url(["identity","mysubreddits","read","submit","edit","privatemessages"], \
 									to,'permanent',False)
 				print("[imap] auth url: %s" % authUrl)
 				sendAuthMail(to, authUrl)
@@ -137,9 +137,15 @@ def imapWatcher():
 							reddit.sendResponse(active, response)
 						active = idmatch.group(1)
 						response = ""
-					elif line.strip() == "!mute":
+					elif line.strip() == "!mutesub":
 						# TODO: find a way to mute this entire conversation
-						print("[imap] muting conversation %s (i wish)" % idmatch)
+						print("[imap] muting subreddit %s (i wish)" % idmatch)
+#						
+#						item = next(reddit.info([active]))
+#						if "mute" not in token[2]:
+#							token[2]["mute"] = []
+#						token[3]["mute"].append(active)
+#						util.updateToken(token)
 					elif not line.startswith(">"):
 						response = response + line.strip() + "\n"
 					
