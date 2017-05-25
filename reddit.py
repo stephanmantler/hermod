@@ -114,7 +114,7 @@ def watchSubmissions(mailQueue, context):
 		if submission.created_utc < lastrun:
 			# we've seen this already, let it slide
 			continue
-		print("[reddit-sub:%s] -- new submission --" %  % reddit.user.me().name)
+		print("[reddit-sub:%s] -- new submission --" % reddit.user.me().name)
 		body = ""
 		body = body + "[--%s--] User %s made a new submission to %s titled '%s'\n" % (submission.fullname, submission.author.name, submission.subreddit.display_name, submission.title)
 		body = body + submission.selftext
