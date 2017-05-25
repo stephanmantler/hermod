@@ -164,18 +164,22 @@ def Mailer(mailQueue, context):
 	body = ""
 	itemCount = 0
 	lastSent = time.time()
+	lastOut = time.time()
 	while True:
 		try:
 			# we'll send at most once per hour
 			timeout = max(0, conf.mail['interval'] - time.time() + lastSent)
 			if itemCount >= conf.mail['maxcount']:
 				timeout = 0
-			print("[outmailer] waiting at most %d more seconds for messages..." % timeout)
+			if (time.time() - lastOut) > 60:
+				# don't spam with messages after each update
+				print("[outmailer] %d items queued, waiting at most %d more seconds for messages..." % (itemCount, timeout))
+				lastOut = time.time()
 			body = body + mailQueue.get(True if timeout > 0 else False, timeout)
 			itemCount = itemCount + 1
 		except queue.Empty:
 			if itemCount > 0:
-				print("[outmailer] sending mail...")
+				print("[outmailer] sending mail to %s..." % context[1])
 				with SMTP_SSL(conf.mail['smtphost']) as smtp:
 					smtp.login(conf.mail['username'], conf.mail['password'])
 					msg = MIMEText(body)
