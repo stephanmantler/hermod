@@ -45,7 +45,24 @@ def getReddit(token = None):
 def getSubreddits(r):
 	srs = "+".join(x.display_name for x in r.user.subreddits() if x not in conf.reddit['muted'])
 	return srs
+	
+def subscribe(rr, token, subreddit):
+	"""Subscribe to the specified subreddit"""
+	
+	r = rr
+	if r is None:
+		r = getReddit(token)
+	print("[reddit] subscribing %s to %s" % (r.user.me().name, subreddit))
+	r.subreddit(subreddit).subscribe()
 
+def unsubscribe(rr, token, subreddit):
+	"""Unsubscribe from the specified subreddit"""
+	
+	r = rr
+	if r is None:
+		r = getReddit(token)
+	print("[reddit] unsubscribing %s from %s" % (r.user.me().name, subreddit))
+	r.subreddit(subreddit).unsubscribe()
 		
 def sendResponse(token, fullname, comment):
 	"""Send a response to Reddit.

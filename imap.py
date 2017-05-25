@@ -18,7 +18,7 @@ import util
 
 def sendAuthMail(to, authUrl):
 
-	body = "Please follow the following link to connect your reddit account, and select 'Allow' on the following page.\n\n%s" % authUrl
+	body = "Please follow the following link to connect your reddit account, and select 'Allow' on the following page.\n\n%s\n\nTo subscribe to a new subreddit, reply to any mail from this service with !subscribe name_of_subreddit on a line by itself." % authUrl
 	msg = MIMEText(body)
 	
 
@@ -77,7 +77,7 @@ def imapWatcher():
 				recipient = envelope.sender[0]
 				to ="%s@%s" % (recipient.mailbox.decode('utf-8'), recipient.host.decode('utf-8'))
 
-				authUrl = r.auth.url(["identity","mysubreddits","read","submit","edit","privatemessages"], \
+				authUrl = r.auth.url(["identity","subscribe","mysubreddits","read","submit","edit","privatemessages"], \
 									to,'permanent',False)
 				print("[imap] auth url: %s" % authUrl)
 				sendAuthMail(to, authUrl)
@@ -94,7 +94,7 @@ def imapWatcher():
 				# .. and find the right token
 				tokens = util.readTokens()
 				token = None
-				for (t, a) in tokens:
+				for (t, a, o) in tokens:
 					if a == to:
 						token = t
 						break
@@ -137,15 +137,16 @@ def imapWatcher():
 							reddit.sendResponse(active, response)
 						active = idmatch.group(1)
 						response = ""
-					elif line.strip() == "!mutesub":
+					elif line.strip().startswith("!subscribe"):
 						# TODO: find a way to mute this entire conversation
-						print("[imap] muting subreddit %s (i wish)" % idmatch)
-#						
-#						item = next(reddit.info([active]))
-#						if "mute" not in token[2]:
-#							token[2]["mute"] = []
-#						token[3]["mute"].append(active)
-#						util.updateToken(token)
+						print("[imap] subscribing command: %s" % line)
+						parts = line.split(" ")
+						reddit.subscribe(None, token, parts[1])
+					elif line.strip().startswith("!unsubscribe"):
+						# TODO: find a way to mute this entire conversation
+						print("[imap] unsubscribing command: %s" % line)
+						parts = line.split(" ")
+						reddit.unsubscribe(None, token, parts[1])
 					elif not line.startswith(">"):
 						response = response + line.strip() + "\n"
 					
