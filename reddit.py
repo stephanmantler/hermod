@@ -108,13 +108,13 @@ def watchSubmissions(mailQueue, context):
 	
 	setproctitle("hermod (submissions for %s)" % context[1])
 	reddit = getReddit(context[0])
-	print("[reddit-sub] watching submissions...")
+	print("[reddit-sub:%s] watching submissions..." % reddit.user.me().name)
 	subreddit = reddit.subreddit(getSubreddits(reddit))# reddit.subreddit(conf.reddit['subreddits'])
 	for submission in subreddit.stream.submissions():
 		if submission.created_utc < lastrun:
 			# we've seen this already, let it slide
 			continue
-		print("[reddit-sub] -- new submission --")
+		print("[reddit-sub:%s] -- new submission --" %  % reddit.user.me().name)
 		body = ""
 		body = body + "[--%s--] User %s made a new submission to %s titled '%s'\n" % (submission.fullname, submission.author.name, submission.subreddit.display_name, submission.title)
 		body = body + submission.selftext
@@ -131,15 +131,15 @@ def watchComments(mailQueue, context):
 	
 	setproctitle("hermod (comments for %s)" % context[1])
 	reddit = getReddit(context[0])
-	print("[reddit-com] watching comments...")
+	print("[reddit-com:%s] watching comments..." % reddit.user.me().name)
 	subreddit = reddit.subreddit(getSubreddits(reddit)) #reddit.subreddit(conf.reddit['subreddits'])
 
 	for comment in subreddit.stream.comments():
 		if comment.created_utc < lastrun:
 			continue
 		else:
-			print('[reddit-com] === new comment ===')
-		print('[reddit-com]',time.ctime(comment.created_utc))
+			print('[reddit-com:%s] === new comment ===' % reddit.user.me().name)
+#		print('[reddit-com]',time.ctime(comment.created_utc))
 #			print(vars(comment))
 		parent = next(reddit.info([comment.parent_id]))
 		par = (parent.title+"\n"+parent.selftext) if isinstance(parent, praw.models.reddit.submission.Submission) else parent.body
