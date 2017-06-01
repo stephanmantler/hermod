@@ -22,7 +22,8 @@ httpThread.start()
 print("[main] reading stored tokens")
 authTokenList = util.readTokens()
 print("[main] %s" % repr(authTokenList))
-for token in authTokenList:
+for key in authTokenList:
+	token = authTokenList[key]
 	print("[main] launching system for %s" % token[1])
 	util.launchThreads(token)
 
