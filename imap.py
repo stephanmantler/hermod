@@ -142,14 +142,18 @@ def imapWatcher():
 						print("[imap] subscribing command: %s" % line)
 						parts = line.split(" ")
 						reddit.subscribe(None, token, parts[1])
+						util.restartThreads(token)
 					elif line.strip().startswith("!unsubscribe"):
 						# TODO: find a way to mute this entire conversation
 						print("[imap] unsubscribing command: %s" % line)
 						parts = line.split(" ")
 						reddit.unsubscribe(None, token, parts[1])
+						util.restartThreads(token)
+					elif line.strip().startswith("!mute")
+						parts = line.split(" ")
+						print("[imap] muting %s" % parts[1])
 					elif not line.startswith(">"):
 						response = response + line.strip() + "\n"
-					
 
 				# send out last response we've been collecting
 				if active is not None:
