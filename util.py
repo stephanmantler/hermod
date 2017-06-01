@@ -4,6 +4,7 @@ from multiprocessing import Process,Queue,Lock
 
 import reddit
 
+processList = {}
 
 def launchThreads(token):
 	mailQueue = Queue()
@@ -20,24 +21,33 @@ def launchThreads(token):
 	subThread.start()
 	comThread.start()
 	mailThread.start()
-
+	
+	processList[token[1]] = (subThread, comThread, mailThread, token)
+	
+	
+def restartThreads(token):
+	processes = processList[token[1]]
+	processes[0].terminate()
+	processes[1].terminate()
+	processes[2].terminate()
+	launchThreads(token)
+	
 
 shelfLock = Lock()
 
 def saveToken(token, address, options ):
 	shelfLock.acquire()
-	authTokenList = []
+	authTokenList = {}
 	with shelve.open('.hermod.tokens') as db:
 		if 'tokens' in db:
 			authTokenList = db['tokens']
-		authTokenList.append( (token, address, options ) )
+		authTokenList[token] =  (token, address, options )
 		db['tokens']= authTokenList
 	shelfLock.release()
-	
-	
+		
 def readTokens():
 	shelfLock.acquire()
-	authTokenList = []
+	authTokenList = {}
 	with shelve.open('.hermod.tokens') as db:
 		if 'tokens' in db:
 			authTokenList = db['tokens']
