@@ -10,13 +10,13 @@ processList = {}
 def launchThreads(token):
 	mailQueue = Queue()
 
-	subThread = Process(name="submissions watcher", \
+	subThread = Process(name="submissions watcher (%s)" % token[1], \
 						target=reddit.watchSubmissions, \
 						args=(mailQueue,token))
-	comThread = Process(name="comments watcher", \
+	comThread = Process(name="comments watcher (%s)" % token[1], \
 						target=reddit.watchComments, \
 						args=(mailQueue,token))
-	mailThread = Process(name="mailer", \
+	mailThread = Process(name="mailer (%s)" % token[1], \
 						target=reddit.Mailer, \
 						args=(mailQueue,token))
 	subThread.start()
