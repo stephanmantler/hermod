@@ -43,7 +43,8 @@ def getReddit(token = None):
 
 
 def getSubreddits(r):
-	srs = "+".join(x.display_name for x in r.user.subreddits() if x not in conf.reddit['muted'])
+	subreddits =r.user.subreddits()
+	srs = "+".join(x.display_name for x in subreddits if x not in conf.reddit['muted'])
 	return srs
 	
 def subscribe(rr, token, subreddit):
