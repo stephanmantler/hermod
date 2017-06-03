@@ -110,7 +110,11 @@ def watchSubmissions(mailQueue, context):
 	setproctitle("hermod (submissions for %s)" % context[1])
 	reddit = getReddit(context[0])
 	print("[reddit-sub:%s] watching submissions..." % reddit.user.me().name)
-	subreddit = reddit.subreddit(getSubreddits(reddit))# reddit.subreddit(conf.reddit['subreddits'])
+	srlist = getSubreddits(reddit)
+	if srlist is None or len(srlist) == 0:
+		print("[reddit-sub:%s] empty subreddit list" % reddit.user.me().name)
+		return
+	subreddit = reddit.subreddit(srlist)
 	for submission in subreddit.stream.submissions():
 		if submission.created_utc < lastrun:
 			# we've seen this already, let it slide
@@ -133,7 +137,11 @@ def watchComments(mailQueue, context):
 	setproctitle("hermod (comments for %s)" % context[1])
 	reddit = getReddit(context[0])
 	print("[reddit-com:%s] watching comments..." % reddit.user.me().name)
-	subreddit = reddit.subreddit(getSubreddits(reddit)) #reddit.subreddit(conf.reddit['subreddits'])
+	srlist = getSubreddits(reddit)
+	if srlist is None or len(srlist) == 0:
+		print("[reddit-sub:%s] empty subreddit list" % reddit.user.me().name)
+		return
+	subreddit = reddit.subreddit(srlist)
 
 	for comment in subreddit.stream.comments():
 		if comment.created_utc < lastrun:
