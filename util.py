@@ -36,6 +36,22 @@ def restartThreads(token):
 
 shelfLock = Lock()
 
+def setOption(token, option, value):
+	shelfLock.acquire()
+	authTokenList = {}
+	with shelve.open('.hermod.tokens') as db:
+		if 'tokens' in db:
+			atl = db['tokens']
+			entry = atl[token]
+			entry[2][option] = value
+			atl[token] = entry
+			db['tokens'] = atl
+			print("set:",repr(entry))
+			print("set:",repr(db['tokens'][token]))
+		else:
+			print("no tokens :(")
+	shelfLock.release()
+
 def saveToken(token, address, options ):
 	shelfLock.acquire()
 	authTokenList = {}
@@ -62,7 +78,9 @@ def removeToken(key):
 	authTokenList = {}
 	with shelve.open('.hermod.tokens') as db:
 		if 'tokens' in db:
-			del db['tokens']
+			authTokenList = db['tokens']
+			del authTokenList[key]
+			db['tokens'] = authTokenList
 	shelfLock.release()
 	print(repr(authTokenList))
 
@@ -81,6 +99,13 @@ def main():
 		print("  unsubscribe <token> <sub>   subscribe user identified by <token> to <sub>")
 		print("  mute <key> <id>             mute conversation <id> for user <token>")
 		return
+	if sys.argv[1] == 'setopt':
+		if len(sys.argv) != 5:
+			print("incorrect arg length")
+			return
+		print("setting option %s to %s" % (sys.argv[3], sys.argv[4]))
+		setOption(sys.argv[2],sys.argv[3],sys.argv[4])
+		return
 	if sys.argv[1] == 'subscribe':
 		if len(sys.argv) != 4:
 			print("incorrect arg length")
@@ -97,6 +122,16 @@ def main():
 		import reddit
 		reddit.subscribe(None, sys.argv[2], sys.argv[3])
 		return
+	if sys.argv[1] == 'listsubs':
+		if len(sys.argv) != 3:
+			print("incorrect arg count")
+			return
+		import reddit
+		import praw
+		r = reddit.getReddit(sys.argv[2])
+		print("subreddits for %s:" % r.user.me().name)
+		for sr in r.user.subreddits():
+			print("  %s" % sr.display_name)
 	if sys.argv[1] == 'removetoken':
 		removeToken(sys.argv[2])
 		return

@@ -114,6 +114,9 @@ def watchSubmissions(mailQueue, context):
 	if srlist is None or len(srlist) == 0:
 		print("[reddit-sub:%s] empty subreddit list" % reddit.user.me().name)
 		return
+	if 'only' in context[2]:
+		srlist = context[2]['only']
+		print("[reddit-sub:%s] restricting watch to %s" % (reddit.user.me().name, srlist))
 	subreddit = reddit.subreddit(srlist)
 	for submission in subreddit.stream.submissions():
 		if submission.created_utc < lastrun:
@@ -141,6 +144,9 @@ def watchComments(mailQueue, context):
 	if srlist is None or len(srlist) == 0:
 		print("[reddit-sub:%s] empty subreddit list" % reddit.user.me().name)
 		return
+	if 'only' in context[2]:
+		srlist = context[2]['only']
+		print("[reddit-sub:%s] restricting watch to %s" % (reddit.user.me().name, srlist))
 	subreddit = reddit.subreddit(srlist)
 
 	for comment in subreddit.stream.comments():
