@@ -149,7 +149,7 @@ def imapWatcher():
 						parts = line.split(" ")
 						reddit.unsubscribe(None, token, parts[1])
 						util.restartThreads(token)
-					elif line.strip().startswith("!mute")
+					elif line.strip().startswith("!mute"):
 						parts = line.split(" ")
 						print("[imap] muting %s" % parts[1])
 					elif not line.startswith(">"):
