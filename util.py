@@ -1,4 +1,5 @@
 import os
+import sys
 import shelve
 from multiprocessing import Process,Queue,Lock
 
@@ -44,7 +45,7 @@ def saveToken(token, address, options ):
 		authTokenList[token] =  (token, address, options )
 		db['tokens']= authTokenList
 	shelfLock.release()
-		
+	
 def readTokens():
 	shelfLock.acquire()
 	authTokenList = {}
@@ -56,9 +57,54 @@ def readTokens():
 	
 	return authTokenList
 	
+def removeToken(key):
+	shelfLock.acquire()
+	authTokenList = {}
+	with shelve.open('.hermod.tokens') as db:
+		if 'tokens' in db:
+			del db['tokens']
+	shelfLock.release()
+	print(repr(authTokenList))
 
 def touch(fname, mode=0o666, dir_fd=None, **kwargs):
     flags = os.O_CREAT | os.O_APPEND
     with os.fdopen(os.open(fname, flags=flags, mode=mode, dir_fd=dir_fd)) as f:
         os.utime(f.fileno() if os.utime in os.supports_fd else fname,
             dir_fd=None if os.supports_fd else dir_fd, **kwargs)
+            
+def main(): 
+	if len(sys.argv) < 2:
+		print("possible commands:")
+		print("  list                        list known auth tokens")
+		print("  removetoken <tkey>          remove <key> from token list")
+		print("  subscribe <token> <sub>     subscribe user identified by <token> to <sub>")
+		print("  unsubscribe <token> <sub>   subscribe user identified by <token> to <sub>")
+		print("  mute <key> <id>             mute conversation <id> for user <token>")
+		return
+	if sys.argv[1] == 'subscribe':
+		if len(sys.argv) != 4:
+			print("incorrect arg length")
+			return
+		print("subscribing %s to %s" % (sys.argv[2], sys.argv[3]))
+		import reddit
+		reddit.subscribe(None, sys.argv[2], sys.argv[3])
+		return
+	if sys.argv[1] == 'unsubscribe':
+		if len(sys.argv) != 4:
+			print("incorrect arg length")
+			return
+		print("unsubscribing %s from %s" % (sys.argv[2], sys.argv[3]))
+		import reddit
+		reddit.subscribe(None, sys.argv[2], sys.argv[3])
+		return
+	if sys.argv[1] == 'removetoken':
+		removeToken(sys.argv[2])
+		return
+	if sys.argv[1] == 'list':
+		tokens = readTokens()
+		for key in tokens:
+			print(key, repr(tokens[key]))
+		return
+           
+if __name__ == "__main__":
+	main()
